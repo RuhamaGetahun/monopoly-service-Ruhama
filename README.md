@@ -8,9 +8,15 @@ This is the data service application for the
 
 Based on this URL, the service implements the following endpoints:
 
+**Player Endpoints:**
 - `/` &mdash; a hello message
 - `/players` &mdash; the full list of players
 - `/players/:id` &mdash; the single player with the given ID (e.g., `/players/1`)
+
+**Game Endpoints:**
+- `/games` &mdash; the full list of games, ordered by time (most recent first)
+- `/games/:id` &mdash; the players and scores for the specified game (e.g., `/games/1`)
+- DELETE `/games/:id` &mdash; deletes the specified game and all associated player-game records
 
 Also, it gives the following responses:
 

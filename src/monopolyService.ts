@@ -68,6 +68,11 @@ router.put('/players/:id', updatePlayer);
 router.post('/players', createPlayer);
 router.delete('/players/:id', deletePlayer);
 
+// Game endpoints
+router.get('/games', readGames);
+router.get('/games/:id', readGameDetails);
+router.delete('/games/:id', deleteGame);
+
 // For testing only; vulnerable to SQL injection!
 // router.get('/bad/players/:id', readPlayerBad);
 
@@ -210,6 +215,63 @@ function deletePlayer(request: Request, response: Response, next: NextFunction):
         return t.none('DELETE FROM PlayerGame WHERE playerID=${id}', request.params)
             .then(() => {
                 return t.oneOrNone('DELETE FROM Player WHERE id=${id} RETURNING id', request.params);
+            });
+    })
+        .then((data: { id: number } | null): void => {
+            returnDataOr404(response, data);
+        })
+        .catch((error: Error): void => {
+            next(error);
+        });
+}
+
+// Game CRUD functions
+
+/**
+ * Retrieves all games from the database, ordered by time (most recent first).
+ */
+function readGames(_request: Request, response: Response, next: NextFunction): void {
+    db.manyOrNone('SELECT * FROM Game ORDER BY time DESC')
+        .then((data: any[]): void => {
+            response.send(data);
+        })
+        .catch((error: Error): void => {
+            next(error);
+        });
+}
+
+/**
+ * Retrieves details for a specific game, including all players and their scores.
+ */
+function readGameDetails(request: Request, response: Response, next: NextFunction): void {
+    db.manyOrNone(`
+        SELECT p.name, pg.score
+        FROM PlayerGame pg
+        JOIN Player p ON pg.playerID = p.ID
+        WHERE pg.gameID = \${id}
+        ORDER BY pg.score DESC
+    `, request.params)
+        .then((data: any[]): void => {
+            if (data.length === 0) {
+                response.sendStatus(404);
+            } else {
+                response.send(data);
+            }
+        })
+        .catch((error: Error): void => {
+            next(error);
+        });
+}
+
+/**
+ * Deletes a specific game and all associated PlayerGame records.
+ * Uses a transaction to ensure atomicity.
+ */
+function deleteGame(request: Request, response: Response, next: NextFunction): void {
+    db.tx((t) => {
+        return t.none('DELETE FROM PlayerGame WHERE gameID=\${id}', request.params)
+            .then(() => {
+                return t.oneOrNone('DELETE FROM Game WHERE id=\${id} RETURNING id', request.params);
             });
     })
         .then((data: { id: number } | null): void => {
