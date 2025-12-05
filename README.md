@@ -29,3 +29,6 @@ it&rsquo;s easier to auto-deploy a separate repo to Azure. For your team project
 data service, configure your Azure App Service to auto-deploy from the master/main branch
 of your service repo. See the settings for this in the &ldquo;Deployment Center&rdquo;
 on your Azure service dashboard.
+
+
+Service URL:https://monopoly-service-ruhama-g-fzdjhnbvfwfcc6dz.eastus2-01.azurewebsites.net
